@@ -106,7 +106,12 @@ Dim mBar As c_ProgressBar
             End If
         End If
     Next
-
+    
+    'Sauvegarde le dernier fichier
+    Set mProd = mPartDoc.Product
+    mProd.PartNumber = "RemontageSTLPart" & NoPart
+    mPartDoc.SaveAs "c:\temp\RemontSTLpart" & NoPart & ".Catpart"
+    mPartDoc.Close
 
 End Sub
 
@@ -145,7 +150,7 @@ Dim i As Integer
         Set AB = VecteurDir(ptA, ptB)
         Set BC = VecteurDir(ptB, ptC)
         Set ProdVectAB = ProduitVect(AB, BC)
-        NormAB = NormVect(AB)
+        NormAB = NormVect(ProdVectAB)
         NormBC = NormVect(BC)
         Distance = NormAB / NormBC
         If Distance < ValSeuil Then DiscrVertex = False
