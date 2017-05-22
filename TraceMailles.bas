@@ -44,7 +44,7 @@ Dim mBar As c_ProgressBar
         'Discrimine le vertex si les points sont trop proches d'une droite
         If DiscrVertex(oVertex) Then
             'Creation du premier point
-            Set mHSPtCoord1 = mHSFact.AddNewPointCoord(oVertex.PT1.X, oVertex.PT1.Y, oVertex.PT1.Z)
+            Set mHSPtCoord1 = mHSFact.AddNewPointCoord(oVertex.Pt1.X, oVertex.Pt1.Y, oVertex.Pt1.Z)
             mHBody.AppendHybridShape mHSPtCoord1
             mPart.InWorkObject = mHSPtCoord1
             'mPart.Update
@@ -88,8 +88,8 @@ Dim mBar As c_ProgressBar
             mHBody.AppendHybridShape HSFil
             mPart.InWorkObject = HSFil
             'mPart.Update
-
-            If cptItem > NbItemDecoup Or noVertex = oVertexs.Count Then 'Création d'un nouveau Part
+            
+            If cptItem > NbItemDecoup And DecoupFic Then 'Création d'un nouveau Part
                 On Error GoTo 0
                 cptItem = 1
                 Set mProd = mPartDoc.Product
@@ -134,17 +134,17 @@ Dim i As Integer
     For i = 1 To 3
         Select Case i 'Rotation des points
             Case 1
-                Set ptA = oVertex.PT1
+                Set ptA = oVertex.Pt1
                 Set ptB = oVertex.Pt2
                 Set ptC = oVertex.Pt3
             Case 2
                 Set ptA = oVertex.Pt3
-                Set ptB = oVertex.PT1
+                Set ptB = oVertex.Pt1
                 Set ptC = oVertex.Pt2
             Case 3
                 Set ptA = oVertex.Pt2
                 Set ptB = oVertex.Pt3
-                Set ptC = oVertex.PT1
+                Set ptC = oVertex.Pt1
         End Select
         
         Set AB = VecteurDir(ptA, ptB)
@@ -154,7 +154,6 @@ Dim i As Integer
         NormBC = NormVect(BC)
         Distance = NormAB / NormBC
         If Distance < ValSeuil Then DiscrVertex = False
-    
     Next i
     
     'Liberation des classes

@@ -6,17 +6,34 @@ Option Explicit
 Sub CATMain()
 'Trace les triangles défini dans un fichier STL
 Dim oVertexs As c_Vertexs
-
+Dim isBinaire  As Boolean
 'Initialisation des classes
     Set oVertexs = New c_Vertexs
 
-'charge le fichier slt
-    'FicSTL = "C:\CFR\Dropbox\Macros\Lecture_STL\Bat52-part1-Export.STL"
-    FicSTL = ouvreSTL
-
+'Ouvre la boite de dialogue
+    Load Frm_Demarrage
+    Frm_Demarrage.Show
+    If Not Frm_Demarrage.ChB_OkAnnule Then
+        End
+    End If
+    FicSTL = Frm_Demarrage.TB_Fichier
+    If FicSTL = "" Then End 'on vérifie que qque chose a bien été selectionné
+    If Frm_Demarrage.Rbt_BIN = True Then
+        isBinaire = True
+    Else
+        isBinaire = False
+    End If
+    ValSeuil = CDbl(Frm_Demarrage.CBL_Seuil)
+    DecoupFic = Frm_Demarrage.ChB_Decoup
+    NbItemDecoup = CLng(Frm_Demarrage.CBL_NbPt)
+    Unload Frm_Demarrage
+    
 'Collecte les vertex
-    Set oVertexs = ColSTL(FicSTL)
-
+    If isBinaire Then
+        Set oVertexs = lectureSTLBinaire(FicSTL)
+    Else
+        Set oVertexs = ColSTL(FicSTL)
+    End If
 'Tracé des mailles
     CreateMailles oVertexs
 
@@ -24,16 +41,6 @@ Dim oVertexs As c_Vertexs
     Set oVertexs = Nothing
 
 End Sub
-
-Private Function ouvreSTL() As String
-'Recupere le fichier STL
-'Dim NomComplet As String
-
-    'Ouverture du fichier de paramètres
-    ouvreSTL = CATIA.FileSelectionBox("Selectionner le fichier STL", "*.stl", CatFileSelectionModeOpen)
-    If ouvreSTL = "" Then Exit Function 'on vérifie que qque chose a bien été selectionné
-   
-End Function
 
 Private Function ColSTL(FicSTL) As c_Vertexs
 'Collecte les vertex dans le fichier STL
@@ -57,7 +64,7 @@ Dim cpt As Long
             CurLig = f.ReadLine
             If InStr(1, CurLig, "vertex", vbTextCompare) > 0 Then
                 Set Pt = AdPt(CurLig)
-                oVertex.PT1 = Pt
+                oVertex.Pt1 = Pt
             End If
             CurLig = f.ReadLine
             If InStr(1, CurLig, "vertex", vbTextCompare) > 0 Then
@@ -69,7 +76,7 @@ Dim cpt As Long
                 Set Pt = AdPt(CurLig)
                 oVertex.Pt3 = Pt
             End If
-            oVertexs.Add cpt, oVertex.PT1, oVertex.Pt2, oVertex.Pt3
+            oVertexs.Add cpt, oVertex.Pt1, oVertex.Pt2, oVertex.Pt3
         End If
     Loop
 Set ColSTL = oVertexs
@@ -94,13 +101,13 @@ Dim Valeur As Double
     For i = 2 To col.Count 'on sute la string "vertex"
         On Error Resume Next
         Valeur = CDbl(Replace(col.item(i), ".", ",", 1, 1, vbTextCompare))
-        If Err.Number = 0 Then
+        If err.Number = 0 Then
             oCoor.X = CDbl(Replace(col.item(i), ".", ",", 1, 1, vbTextCompare))
             oCoor.Y = CDbl(Replace(col.item(i + 1), ".", ",", 1, 1, vbTextCompare))
             oCoor.Z = CDbl(Replace(col.item(i + 2), ".", ",", 1, 1, vbTextCompare))
             Exit For
         Else
-            Err.Clear
+            err.Clear
         End If
         On Error GoTo 0
     Next i
