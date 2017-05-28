@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 Private mcol As Collection
 
 Public Function Add(No As Long, _
-                Optional PT1 As c_Coord, _
+                Optional Pt1 As c_Coord, _
                 Optional Pt2 As c_Coord, _
                 Optional Pt3 As c_Coord) As c_Vertex
     
@@ -19,7 +19,7 @@ Public Function Add(No As Long, _
     Set objNewMember = New c_Vertex
     
     objNewMember.No = No
-    objNewMember.PT1 = PT1
+    objNewMember.Pt1 = Pt1
     objNewMember.Pt2 = Pt2
     objNewMember.Pt3 = Pt3
 

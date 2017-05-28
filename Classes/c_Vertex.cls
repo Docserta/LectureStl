@@ -22,12 +22,12 @@ Public Property Get No() As Long
     No = mvarNo
 End Property
 
-Public Property Let PT1(vData As c_Coord)
+Public Property Let Pt1(vData As c_Coord)
     Set mvarPt1 = vData
 End Property
 
-Public Property Get PT1() As c_Coord
-    Set PT1 = mvarPt1
+Public Property Get Pt1() As c_Coord
+    Set Pt1 = mvarPt1
 End Property
 
 Public Property Let Pt2(vData As c_Coord)
