@@ -1,6 +1,6 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} Frm_Demarrage 
-   Caption         =   "Ajout d'une Grille de perçage"
+   Caption         =   "Conversion Fichiers STL"
    ClientHeight    =   3255
    ClientLeft      =   45
    ClientTop       =   330
@@ -23,9 +23,15 @@ Attribute VB_Exposed = False
 Private Sub Btn_Navigateur_Click()
 'Recupere le fichier STL
 
-    'Ouverture du fichier de paramètres
+    'Ouverture du fichier STL
     Me.TB_Fichier = CATIA.FileSelectionBox("Selectionner le fichier STL", "*.stl", CatFileSelectionModeOpen)
 
+    If iSAscii Then
+        Me.Rbt_ASCII.Value = True
+    Else
+        Me.Rbt_BIN.Value = True
+    End If
+    
 End Sub
 
 Private Sub BtnAnnul_Click()
@@ -81,3 +87,20 @@ Private Sub UserForm_Initialize()
     Me.Rbt_ASCII = True
     
 End Sub
+
+Private Function iSAscii()
+'Verifie si la première lige du fichier contient "solid"
+Dim f, fs
+Dim CurLig As String
+
+    Set fs = CreateObject("scripting.filesystemobject")
+
+    Set f = fs.opentextfile(Me.TB_Fichier, ForReading, 1)
+        CurLig = f.ReadLine
+    If InStr(1, CurLig, "solid", vbTextCompare) > 0 Then iSAscii = True Else iSAscii = False
+'Fermeture du fichier
+    Set f = Nothing
+    Set fs = Nothing
+    
+ End Function
+
