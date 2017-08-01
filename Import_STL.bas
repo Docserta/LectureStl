@@ -8,6 +8,7 @@ Sub catmain()
 Dim oVertexs As c_Vertexs
 Dim isBinaire  As Boolean
 Dim mbar As c_ProgressBar
+
 'Initialisation des classes
     Set oVertexs = New c_Vertexs
     Set mbar = New c_ProgressBar
@@ -34,31 +35,50 @@ Dim mbar As c_ProgressBar
     
 'Collecte les vertex
     If isBinaire Then
-        Set oVertexs = lectureSTLBinaire(FicSTL, mbar)
+        lectureSTLBinaire FicSTL, mbar
     Else
-        Set oVertexs = ColSTL(FicSTL, mbar)
+        ColSTL FicSTL, mbar
     End If
-'Tracé des mailles
-    CreateMailles oVertexs, mbar
+    
 
-'Libération des objets
-    Set oVertexs = Nothing
+
 
 End Sub
 
-Private Function ColSTL(FicSTL, mbar As c_ProgressBar) As c_Vertexs
+Private Sub ColSTL(FicSTL, mbar As c_ProgressBar)
 'Collecte les vertex dans le fichier STL
 Dim oVertex As c_Vertex
-Dim oVertexs As c_Vertexs
 Dim Pt As c_Coord
 Dim f, fs
 Dim CurLig As String
 Dim cpt As Long
+Dim mDocs As Documents
+Dim mPartDoc As PartDocument
+Dim mProd As Product
+Dim mPart As Part
+Dim NoPart As Integer 'decoupage du remontage en plusieurs part pour alléger les parts
+Dim mHSFact As HybridShapeFactory
+Dim HBodies As HybridBodies
+Dim mHBodyPT As HybridBody, mHBodyLine As HybridBody, mHBodyMesh As HybridBody
 
 'Initialisation des classes
+    Set mDocs = CATIA.Documents
+    Set mPartDoc = mDocs.Add("Part")
+    Set mPart = mPartDoc.Part
+    
+    'Création des set géométrique dans la part
+    Set HBodies = mPart.HybridBodies
+    Set mHBodyPT = HBodies.Add()
+    mHBodyPT.Name = "Points"
+    Set mHBodyLine = HBodies.Add()
+    mHBodyLine.Name = "Lines"
+    Set mHBodyMesh = HBodies.Add()
+    mHBodyMesh.Name = "Meshs"
+    mbar.Titre = "Tracé des mailles"
+    
     Set oVertex = New c_Vertex
-    Set oVertexs = New c_Vertexs
     Set fs = CreateObject("scripting.filesystemobject")
+        NoPart = 1
 
     Set f = fs.opentextfile(FicSTL, ForReading, 1)
     Do While Not f.AtEndOfStream
@@ -80,21 +100,47 @@ Dim cpt As Long
                 Set Pt = AdPt(CurLig)
                 oVertex.Pt3 = Pt
             End If
-            oVertexs.Add cpt, oVertex.Pt1, oVertex.Pt2, oVertex.Pt3
+
+CreateMailles mPart, oVertex, mbar
+
+            If cptItem > NbItemDecoup And DecoupFic Then 'Création d'un nouveau Part
+                On Error GoTo 0
+                cptItem = 1
+                Set mProd = mPartDoc.Product
+                mProd.PartNumber = "RemontageSTLPart" & NoPart
+                mPartDoc.SaveAs "c:\temp\RemontSTLpart" & NoPart & ".Catpart"
+                mPartDoc.Close
+                NoPart = NoPart + 1
+                Set mPartDoc = mDocs.Add("Part")
+                Set mPart = mPartDoc.Part
+                Set mHSFact = mPart.HybridShapeFactory
+                Set HBodies = mPart.HybridBodies
+                Set mHBodyPT = HBodies.Add()
+                mHBodyPT.Name = "Points"
+                Set mHBodyLine = HBodies.Add()
+                mHBodyLine.Name = "Lines"
+                Set mHBodyMesh = HBodies.Add()
+                mHBodyMesh.Name = "Meshs"
+                On Error Resume Next
+            End If
         End If
     Loop
-Set ColSTL = oVertexs
+    
+'    'Sauvegarde le dernier fichier
+'    Set mProd = mPartDoc.Product
+'    mProd.PartNumber = "RemontageSTLPart" & NoPart
+'    mPartDoc.SaveAs "c:\temp\RemontSTLpart" & NoPart & ".Catpart"
+'    mPartDoc.Close
+
 'Liberation des classes
     Set oVertex = Nothing
-    Set oVertexs = Nothing
     Set f = Nothing
     Set fs = Nothing
 
-End Function
+End Sub
 
-Public Function lectureSTLBinaire(FicSTL, mbar As c_ProgressBar) As c_Vertexs
+Public Sub lectureSTLBinaire(FicSTL, mbar As c_ProgressBar)
 'Trace les triangles défini dans un fichier STL au format binaire
-Dim oVertexs As c_Vertexs
 Dim oVertex As c_Vertex
 'Ctructure du fichier STL
 Dim comment As String * 80
@@ -107,6 +153,15 @@ Dim tempCoord As c_Coord
 Dim NoTriangle As Long
 Dim i As Long, CurOctet As Variant
 Dim cptItem As Long, posCurs As Long
+
+Dim mDocs As Documents
+Dim mPartDoc As PartDocument
+Dim mProd As Product
+Dim mPart As Part
+Dim NoPart As Integer 'decoupage du remontage en plusieurs part pour alléger les parts
+
+Dim HBodies As HybridBodies
+Dim mHBodyPT As HybridBody, mHBodyLine As HybridBody, mHBodyMesh As HybridBody
 
 On Error GoTo err
 'Les 80 premiers octets sont un commentaire.
@@ -122,8 +177,23 @@ On Error GoTo err
 'Deux octets représentant un octet de contrôle (inutile dans le cadre ce projet).
 
 'Initialisation des classes
-    Set oVertexs = New c_Vertexs
+    Set mDocs = CATIA.Documents
+    Set mPartDoc = mDocs.Add("Part")
+    Set mPart = mPartDoc.Part
     Set oVertex = New c_Vertex
+
+    NoPart = 1
+    
+    'Création des set géométrique dans la part
+    Set HBodies = mPart.HybridBodies
+    Set mHBodyPT = HBodies.Add()
+    mHBodyPT.Name = "Points"
+    Set mHBodyLine = HBodies.Add()
+    mHBodyLine.Name = "Lines"
+    Set mHBodyMesh = HBodies.Add()
+    mHBodyMesh.Name = "Meshs"
+    mbar.Titre = "Tracé des mailles"
+    
     
 'charge le fichier slt
     'FicSTL = "C:\CFR\Dropbox\Macros\Lecture_STL\Bat52-part1-Export.STL"
@@ -192,7 +262,27 @@ On Error GoTo err
         tempCoord.Z = Coord(3)
         oVertex.Pt3 = tempCoord
 
-        oVertexs.Add oVertex.No, oVertex.Pt1, oVertex.Pt2, oVertex.Pt3
+CreateMailles mPart, oVertex, mbar
+
+        If cptItem > NbItemDecoup And DecoupFic Then 'Création d'un nouveau Part
+            On Error GoTo 0
+            cptItem = 1
+            Set mProd = mPartDoc.Product
+            mProd.PartNumber = "RemontageSTLPart" & NoPart
+            mPartDoc.SaveAs "c:\temp\RemontSTLpart" & NoPart & ".Catpart"
+            mPartDoc.Close
+            NoPart = NoPart + 1
+            Set mPartDoc = mDocs.Add("Part")
+            Set mPart = mPartDoc.Part
+            Set HBodies = mPart.HybridBodies
+            Set mHBodyPT = HBodies.Add()
+            mHBodyPT.Name = "Points"
+            Set mHBodyLine = HBodies.Add()
+            mHBodyLine.Name = "Lines"
+            Set mHBodyMesh = HBodies.Add()
+            mHBodyMesh.Name = "Meshs"
+            On Error Resume Next
+        End If
         
         'Passe les 2 octets de controle
         For i = 1 To 2
@@ -202,12 +292,17 @@ On Error GoTo err
         Debug.Print CurOctet
     Loop
   
+    'Sauvegarde le dernier fichier
+    Set mProd = mPartDoc.Product
+    mProd.PartNumber = "RemontageSTLPart" & NoPart
+    mPartDoc.SaveAs "c:\temp\RemontSTLpart" & NoPart & ".Catpart"
+    mPartDoc.Close
+  
 err:
 'Libération des objets
     Close #1
     
-    Set lectureSTLBinaire = oVertexs
-End Function
+End Sub
 
 Private Function AdPt(str As String) As c_Coord
 'collecte les point X, Y et Z de la string passée en argument
@@ -237,47 +332,31 @@ End Function
 
 
 
-Public Sub CreateMailles(oVertexs, mbar As c_ProgressBar)
+Public Sub CreateMailles(mPart As Part, oVertex, mbar As c_ProgressBar)
 'trace les mailles composées de trois lignes definies par les points X, Y, Y
 'de la collection des vertex
 'Découpage en plusieurs parts pour alléger l'update des surfaces
 
-Dim mDocs As Documents
-Dim mPartDoc As PartDocument
-Dim mProd As Product
-Dim mPart As Part
 Dim mHSFact As HybridShapeFactory
 Dim mHSPtCoord1 As HybridShapePointCoord, mHSPtCoord2 As HybridShapePointCoord, mHSPtCoord3 As HybridShapePointCoord
 Dim HBodies As HybridBodies
 Dim mHBodyPT As HybridBody, mHBodyLine As HybridBody, mHBodyMesh As HybridBody
 Dim HSLinePTPT1 As HybridShapeLinePtPt, HSLinePTPT2 As HybridShapeLinePtPt, HSLinePTPT3 As HybridShapeLinePtPt
 Dim HSFil As HybridShapeFill
-Dim toto As HybridShapePlane3Points
-Dim oVertex As c_Vertex
-Dim NoPart As Integer 'decoupage du remontage en plusieurs part pour alléger les parts
+
 Dim cptItem As Long 'Compteur d'items pour découpage des parts
 Dim posCurs As Long 'Compteur pour avancement de la progress bar
-Dim noVertex As Long
 
     'Initialisation des classes
-    Set oVertex = New c_Vertex
-    Set mDocs = CATIA.Documents
-    Set mPartDoc = mDocs.Add("Part")
-    Set mPart = mPartDoc.Part
     Set mHSFact = mPart.HybridShapeFactory
     Set HBodies = mPart.HybridBodies
-    Set mHBodyPT = HBodies.Add()
-    mHBodyPT.Name = "Points"
-    Set mHBodyLine = HBodies.Add()
-    mHBodyLine.Name = "Lines"
-    Set mHBodyMesh = HBodies.Add()
-    mHBodyMesh.Name = "Meshs"
+    Set mHBodyPT = HBodies.item("Points")
+    Set mHBodyLine = HBodies.item("Lines")
+    Set mHBodyMesh = HBodies.item("Meshs")
     mbar.Titre = "Tracé des mailles"
-    
-    NoPart = 1
         
     On Error Resume Next
-    For Each oVertex In oVertexs.Items
+
         noVertex = noVertex + 1
         cptItem = cptItem + 1
         
@@ -337,34 +416,7 @@ Dim noVertex As Long
             mPart.InWorkObject = HSFil
             'mPart.Update
             
-            If cptItem > NbItemDecoup And DecoupFic Then 'Création d'un nouveau Part
-                On Error GoTo 0
-                cptItem = 1
-                Set mProd = mPartDoc.Product
-                mProd.PartNumber = "RemontageSTLPart" & NoPart
-                mPartDoc.SaveAs "c:\temp\RemontSTLpart" & NoPart & ".Catpart"
-                mPartDoc.Close
-                NoPart = NoPart + 1
-                Set mPartDoc = mDocs.Add("Part")
-                Set mPart = mPartDoc.Part
-                Set mHSFact = mPart.HybridShapeFactory
-                Set HBodies = mPart.HybridBodies
-                Set mHBodyPT = HBodies.Add()
-                mHBodyPT.Name = "Points"
-                Set mHBodyLine = HBodies.Add()
-                mHBodyLine.Name = "Lines"
-                Set mHBodyMesh = HBodies.Add()
-                mHBodyMesh.Name = "Meshs"
-                On Error Resume Next
-            End If
         End If
-    Next
-    
-    'Sauvegarde le dernier fichier
-    Set mProd = mPartDoc.Product
-    mProd.PartNumber = "RemontageSTLPart" & NoPart
-    mPartDoc.SaveAs "c:\temp\RemontSTLpart" & NoPart & ".Catpart"
-    mPartDoc.Close
 
 End Sub
 

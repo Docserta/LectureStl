@@ -35,7 +35,7 @@ Public Function NormVect(vect As c_Coord) As Double
     NormVect = Sqr(vect.X ^ 2 + vect.Y ^ 2 + vect.Z ^ 2)
 End Function
 
-Public Function DiscrVertex(oVertex As c_Vertex) As Boolean
+Public Function DiscrVertex(oVertex) As Boolean
 'Discrimine le vertex si un des 3 points est trop proche de la droite opposé
 Dim discrim As Boolean
 Dim ptA As c_Coord

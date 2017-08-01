@@ -8,3 +8,6 @@ Public Const ForReading  As Integer = 1
 
 Public ValSeuil As Double 'Seuil de discrimination des géométries
 Public DecoupFic As Boolean 'Choix de découper les résultat en plusieur fichiers
+
+Public noVertex As Long
+Public cptItem As Long 'Compteur d'items pour découpage des parts
