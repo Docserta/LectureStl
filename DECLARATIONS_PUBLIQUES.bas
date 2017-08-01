@@ -2,8 +2,9 @@ Attribute VB_Name = "DECLARATIONS_PUBLIQUES"
 
 
 Public FicSTL As String
-Public Const NbItemDecoup As Long = 4000
+Public NbItemDecoup As Long 'Nombre de points a partir duquel on change de fichier de résultat
 
 Public Const ForReading  As Integer = 1
 
-Public Const ValSeuil As Double = 0.02
+Public ValSeuil As Double 'Seuil de discrimination des géométries
+Public DecoupFic As Boolean 'Choix de découper les résultat en plusieur fichiers
