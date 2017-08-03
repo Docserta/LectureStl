@@ -103,3 +103,37 @@ separateur = " "
     'Libération des objets
     Set oVal = Nothing
 End Function
+
+Public Function ListeFilesStl() As String()
+'Renvoi la liste des fichiers de remontage Stl
+Dim fs As Object
+Dim mFolder As Object
+Dim colFichiers As Object
+Dim mFile As Object
+Dim mFileName As String
+Dim mListFiles() As String
+Dim i As Long
+
+    Set fs = CreateObject("scripting.filesystemobject")
+    Set mFolder = fs.GetFolder(PathFicStl)
+
+    Set colFichiers = mFolder.Files
+    'For i = 1 To colFichiers.Count
+    For Each mFile In colFichiers
+        'mFile = colFichiers.item(i)
+        mFileName = mFile.Name
+        If (InStr(1, mFileName, RadNameFile, vbTextCompare) > 0) Then
+            ReDim Preserve mListFiles(i)
+            mListFiles(i) = mFileName
+            i = i + 1
+        End If
+    Next
+
+    'Libération des objets
+    Set fs = Nothing
+    Set mFolder = Nothing
+    Set colFichiers = Nothing
+    
+    ListeFilesStl = mListFiles
+
+End Function

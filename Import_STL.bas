@@ -3,14 +3,12 @@ Attribute VB_Name = "Import_STL"
 
 Option Explicit
 
-Sub catmain()
+Sub CATMain()
 'Trace les triangles défini dans un fichier STL
-Dim oVertexs As c_Vertexs
 Dim isBinaire  As Boolean
 Dim mbar As c_ProgressBar
 
 'Initialisation des classes
-    Set oVertexs = New c_Vertexs
     Set mbar = New c_ProgressBar
         mbar.ProgressTitre 1, "lecture du fichier STL"
         mbar.Affiche
@@ -39,9 +37,6 @@ Dim mbar As c_ProgressBar
     Else
         ColSTL FicSTL, mbar
     End If
-    
-
-
 
 End Sub
 
@@ -101,14 +96,14 @@ Dim mHBodyPT As HybridBody, mHBodyLine As HybridBody, mHBodyMesh As HybridBody
                 oVertex.Pt3 = Pt
             End If
 
-CreateMailles mPart, oVertex, mbar
+            CreateMailles mPart, oVertex, mbar
 
             If cptItem > NbItemDecoup And DecoupFic Then 'Création d'un nouveau Part
                 On Error GoTo 0
                 cptItem = 1
                 Set mProd = mPartDoc.Product
-                mProd.PartNumber = "RemontageSTLPart" & NoPart
-                mPartDoc.SaveAs "c:\temp\RemontSTLpart" & NoPart & ".Catpart"
+                mProd.PartNumber = RadNameFile & NoPart
+                mPartDoc.SaveAs "c:\temp\" & RadNameFile & NoPart & ".Catpart"
                 mPartDoc.Close
                 NoPart = NoPart + 1
                 Set mPartDoc = mDocs.Add("Part")
@@ -126,11 +121,11 @@ CreateMailles mPart, oVertex, mbar
         End If
     Loop
     
-'    'Sauvegarde le dernier fichier
-'    Set mProd = mPartDoc.Product
-'    mProd.PartNumber = "RemontageSTLPart" & NoPart
-'    mPartDoc.SaveAs "c:\temp\RemontSTLpart" & NoPart & ".Catpart"
-'    mPartDoc.Close
+    'Sauvegarde le dernier fichier
+    Set mProd = mPartDoc.Product
+    mProd.PartNumber = RadNameFile & NoPart
+    mPartDoc.SaveAs "c:\temp\" & RadNameFile & NoPart & ".Catpart"
+    mPartDoc.Close
 
 'Liberation des classes
     Set oVertex = Nothing
@@ -294,10 +289,10 @@ CreateMailles mPart, oVertex, mbar
   
     'Sauvegarde le dernier fichier
     Set mProd = mPartDoc.Product
-    mProd.PartNumber = "RemontageSTLPart" & NoPart
-    mPartDoc.SaveAs "c:\temp\RemontSTLpart" & NoPart & ".Catpart"
+    mProd.PartNumber = RadNameFile & NoPart
+    mPartDoc.SaveAs "c:\temp\" & RadNameFile & NoPart & ".Catpart"
     mPartDoc.Close
-  
+
 err:
 'Libération des objets
     Close #1
@@ -417,6 +412,13 @@ Dim posCurs As Long 'Compteur pour avancement de la progress bar
             'mPart.Update
             
         End If
+
+    
+'    'Sauvegarde le dernier fichier
+'    Set mProd = mPartDoc.Product
+'    mProd.PartNumber = "RemontageSTLPart" & NoPart
+'    mPartDoc.SaveAs "c:\temp\RemontSTLpart" & NoPart & ".Catpart"
+'    mPartDoc.Close
 
 End Sub
 
